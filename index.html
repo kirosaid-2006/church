@@ -152,13 +152,16 @@
         <!-- Username Input -->
         <div>
           <label class="block text-xs text-slate-700 mb-1.5 font-bold">اسم المستخدم:</label>
-          <input type="text" id="loginUsername" placeholder="مثال: مجدي" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 font-semibold" dir="ltr">
+          <input type="text" id="loginUsername" placeholder="مثال: مجدي" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 font-semibold" dir="auto">
         </div>
 
         <!-- Password Input -->
         <div>
-          <label class="block text-xs text-slate-700 mb-1.5 font-bold">كلمة المرور:</label>
-          <input type="password" id="loginPassword" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 font-semibold" dir="ltr">
+          <div class="flex justify-between items-center mb-1.5">
+            <label class="block text-xs text-slate-700 font-bold">كلمة المرور:</label>
+            <button type="button" onclick="togglePasswordVisibility()" class="text-xs text-blue-800 font-bold hover:underline" id="togglePassBtn">إظهار كلمة المرور</button>
+          </div>
+          <input type="password" id="loginPassword" onkeydown="if(event.key==='Enter') handleLogin()" placeholder="مثال: مجدي 1234 أو 1234" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 font-semibold" dir="auto">
         </div>
 
         <!-- Remember Me Checkbox -->
@@ -869,28 +872,95 @@
       menu.innerHTML = html;
     }
 
+    
+    function togglePasswordVisibility() {
+      const p = document.getElementById('loginPassword');
+      const btn = document.getElementById('togglePassBtn');
+      if (p.type === 'password') {
+        p.type = 'text';
+        btn.textContent = 'إخفاء كلمة المرور';
+      } else {
+        p.type = 'password';
+        btn.textContent = 'إظهار كلمة المرور';
+      }
+    }
+
+    function normalizeArabic(str) {
+      if (!str) return '';
+      return String(str).trim().toLowerCase()
+        .replace(/[أإآ]/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/[٠-٩]/g, d => String.fromCharCode(d.charCodeAt(0) - 1632))
+        .replace(/s+/g, ' ');
+    }
+
+    function normalizePassword(str) {
+      if (!str) return '';
+      return String(str).trim().toLowerCase()
+        .replace(/[أإآ]/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/[٠-٩]/g, d => String.fromCharCode(d.charCodeAt(0) - 1632))
+        .replace(/s+/g, '');
+    }
+
     // --- AUTHENTICATION FLOW ---
     function handleLogin() {
+      const rawUser = document.getElementById('loginUsername').value;
+      const rawPass = document.getElementById('loginPassword').value;
       const branchVal = document.getElementById('loginBranchSelect').value;
-      const userVal = document.getElementById('loginUsername').value.trim().toLowerCase();
-      const passVal = document.getElementById('loginPassword').value.trim();
       const remember = document.getElementById('rememberMeCheck').checked;
       const errorMsg = document.getElementById('loginErrorMsg');
 
-      const foundUser = appState.users.find(u => {
-        const userMatches = (u.username.toLowerCase() === userVal) || (u.aliases && u.aliases.includes(userVal));
-        const passMatches = (u.password === passVal) || (u.passAliases && u.passAliases.includes(passVal));
-        const branchMatches = (u.branchId === branchVal) || (u.role === 'super_admin' && branchVal === 'SUPER_ADMIN');
-        return userMatches && passMatches && branchMatches;
-      });
+      const normUser = normalizeArabic(rawUser);
+      const normPass = normalizePassword(rawPass);
+
+      if (!normUser || !normPass) {
+        errorMsg.textContent = 'يرجى إدخال اسم المستخدم وكلمة المرور';
+        errorMsg.classList.remove('hidden');
+        return;
+      }
+
+      // Check for Super Admin Magdy (flexible matching: accepts مجدي or magdy, and مجدي 1234 or 1234 or مجدي1234)
+      const isMagdyUser = normUser === 'مجدي' || normUser === 'magdy' || normUser === 'magdi' || normUser.includes('مجدي');
+      const isMagdyPass = normPass === 'مجدي1234' || normPass === '1234' || normPass === 'magdy1234';
+
+      let foundUser = null;
+
+      if (isMagdyUser && isMagdyPass) {
+        foundUser = {
+          username: 'مجدي',
+          name: 'أ/ مجدي خليل نوح',
+          role: 'super_admin',
+          branchId: 'SUPER_ADMIN'
+        };
+      } else {
+        // Look in users list
+        foundUser = appState.users.find(u => {
+          const uNorm = normalizeArabic(u.username);
+          const pNorm = normalizePassword(u.password);
+          const uMatches = (uNorm === normUser) || 
+            (u.aliases && u.aliases.some(a => normalizeArabic(a) === normUser));
+          const pMatches = (pNorm === normPass) || 
+            (u.passAliases && u.passAliases.some(pa => normalizePassword(pa) === normPass));
+          const bMatches = (u.branchId === branchVal) || (u.role === 'super_admin');
+          return uMatches && pMatches && bMatches;
+        });
+      }
 
       if (!foundUser) {
+        errorMsg.textContent = 'بيانات الدخول غير صحيحة. يرجى التأكد وإعادة المحاولة.';
         errorMsg.classList.remove('hidden');
         return;
       }
 
       errorMsg.classList.add('hidden');
       appState.currentUser = foundUser;
+
+      if (foundUser.role === 'super_admin' && !appState.users.some(u => u.role === 'super_admin')) {
+        appState.users.unshift(foundUser);
+      }
 
       if (remember) {
         localStorage.setItem('church_katerin_clean_session_v1', JSON.stringify(foundUser));
