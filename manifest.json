@@ -1,0 +1,23 @@
+﻿{
+  "name": "كنيسة السيدة العذراء والشهيدة كاترين - حضور الخدام",
+  "short_name": "حضور الخدام",
+  "description": "تطبيق تسجيل ومتابعة حضور الخدام - كنيسة السيدة العذراء والشهيدة كاترين",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#1E3A8A",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "app_icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "app_logo.png",
+      "sizes": "830x868",
+      "type": "image/png"
+    }
+  ]
+}
