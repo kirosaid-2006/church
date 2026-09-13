@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = 'church-attendance-v1';
+const CACHE_NAME = 'church-attendance-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -28,6 +28,18 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
+  if (e.request.mode === 'navigate' || e.request.url.includes('index.html')) {
+    e.respondWith(
+      fetch(e.request)
+        .then((res) => {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+          return res;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then((res) => res || fetch(e.request))
   );
