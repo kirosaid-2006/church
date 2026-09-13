@@ -1,11 +1,11 @@
-﻿import '../models/attendance_record.dart';
-import '../models/branch.dart';
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/attendance_provider.dart';
 import '../theme/app_theme.dart';
 import '../models/servant.dart';
+import '../models/branch.dart';
+import '../models/attendance_record.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({Key? key}) : super(key: key);
@@ -23,7 +23,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     final servants = provider.getFilteredServants(query: _searchController.text);
     final isSuper = provider.currentUser?.isSuperAdmin ?? false;
 
-    // Calculate top mini stats
     int q = 0, k = 0, e = 0;
     if (provider.selectedFriday != null) {
       for (var s in servants) {
@@ -37,19 +36,43 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     return ListView(
       padding: const EdgeInsets.all(14.0),
       children: [
-        // Mini Stats
         Row(
           children: [
-            _statBox('القداس', '$q/${servants.length}', AppTheme.statusGreenText),
+            _statBox('القداس الإلهي', '$q/${servants.length}', AppTheme.statusGreenText),
             const SizedBox(width: 8),
-            _statBox('الخدمة', '$k/${servants.length}', AppTheme.primaryBlue),
+            _statBox('حضور الخدمة', '$k/${servants.length}', AppTheme.primaryBlue),
             const SizedBox(width: 8),
-            _statBox('الاجتماع', '$e/${servants.length}', AppTheme.accentGold),
+            _statBox('اجتماع الخدام', '$e/${servants.length}', AppTheme.accentGold),
           ],
         ),
         const SizedBox(height: 12),
 
-        // Search & Branch Filter
+        // Branch filter pills for Super Admin
+        if (isSuper && provider.branches.isNotEmpty) ...[
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                ChoiceChip(
+                  label: const Text('كل الفروع', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  selected: provider.filterBranchId == 'ALL',
+                  onSelected: (_) => provider.setFilterBranchId('ALL'),
+                ),
+                const SizedBox(width: 6),
+                ...provider.branches.map((b) => Padding(
+                      padding: const EdgeInsets.only(left: 6),
+                      child: ChoiceChip(
+                        label: Text(b.name, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        selected: provider.filterBranchId == b.id,
+                        onSelected: (_) => provider.setFilterBranchId(b.id),
+                      ),
+                    )),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+
         Row(
           children: [
             Expanded(
@@ -63,47 +86,20 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 ),
               ),
             ),
-            if (isSuper) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.cardWhite,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.borderSubtle),
-                ),
-                child: DropdownButton<String>(
-                  value: provider.filterBranchId,
-                  underline: const SizedBox(),
-                  style: const TextStyle(fontSize: 12, color: AppTheme.textMain),
-                  items: [
-                    const DropdownMenuItem(value: 'ALL', child: Text('كل الفروع')),
-                    ...provider.branches.map((b) => DropdownMenuItem(value: b.id, child: Text(b.name))),
-                  ],
-                  onChanged: (val) {
-                    if (val != null) provider.setFilterBranchId(val);
-                  },
-                ),
-              ),
-            ],
           ],
         ),
         const SizedBox(height: 10),
-
-        // Quick bulk action
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('${servants.length} خادم مسجل', style: const TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+            Text('${servants.length} خادم مسجل', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
             TextButton(
               onPressed: () => provider.bulkMarkAllPresent(),
-              child: const Text('تحضير الكل للقداس', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+              child: const Text('تحضير الكل للقداس', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
         const SizedBox(height: 4),
-
-        // Servants List
         if (servants.isEmpty)
           Container(
             padding: const EdgeInsets.all(32),
@@ -113,7 +109,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppTheme.borderSubtle),
             ),
-            child: const Text('لا يوجد خدام مطابقين للبحث أو الفرع', style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+            child: const Column(
+              children: [
+                Text('لا يوجد خدام مسجلين في هذا الفرع حالياً', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textMain)),
+                SizedBox(height: 4),
+                Text('يمكنك إضافة فروع وخدام من تبويب «الفروع والخدام»', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+              ],
+            ),
           )
         else
           ...servants.map((s) => _servantAttendanceCard(s, provider)),
@@ -124,7 +126,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Widget _statBox(String title, String value, Color color) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: AppTheme.cardWhite,
           borderRadius: BorderRadius.circular(12),
@@ -132,9 +134,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         ),
         child: Column(
           children: [
-            Text(title, style: const TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+            Text(title, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
             const SizedBox(height: 2),
-            Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: color)),
+            Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: color)),
           ],
         ),
       ),
@@ -161,22 +163,22 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   children: [
                     Row(
                       children: [
-                        Text(s.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textMain)),
+                        Text(s.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textMain)),
                         if (abs >= 2) ...[
                           const SizedBox(width: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: abs >= 3 ? AppTheme.statusRedBg : AppTheme.statusAmberBg,
+                              color: AppTheme.statusRedBg,
                               borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: abs >= 3 ? AppTheme.statusRedBorder : AppTheme.statusAmberBorder),
+                              border: Border.all(color: AppTheme.statusRedBorder),
                             ),
                             child: Text(
-                              'غياب $abs أسابيع',
-                              style: TextStyle(
-                                fontSize: 9,
+                              'غياب $abs متتاليين',
+                              style: const TextStyle(
+                                fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: abs >= 3 ? AppTheme.statusRedText : AppTheme.statusAmberText,
+                                color: AppTheme.statusRedText,
                               ),
                             ),
                           ),
@@ -190,13 +192,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 InkWell(
                   onTap: () => launchUrl(Uri.parse('tel:${s.phone}')),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: AppTheme.bgLight,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: AppTheme.borderSubtle),
                     ),
-                    child: const Text('اتصال', style: TextStyle(fontSize: 11, color: AppTheme.textMain)),
+                    child: const Text('اتصال', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textMain)),
                   ),
                 ),
               ],
@@ -240,7 +242,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 6),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: bg,
@@ -248,13 +250,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             border: Border.all(color: border),
           ),
           child: Text(
-            state == 0 ? label : '$prefix $label',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: text),
+            state == 0 ? 'غائب' : (state == 1 ? '✓ حاضر' : 'عذر'),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: text),
           ),
         ),
       ),
     );
   }
 }
-
-

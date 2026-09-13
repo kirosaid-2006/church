@@ -30,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
+              constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -54,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         fit: BoxFit.cover,
                         errorBuilder: (ctx, err, stack) => Container(
                           color: AppTheme.primaryBlue,
-                          child: const Icon(Icons.church, color: Colors.white, size: 40),
+                          child: const Icon(Icons.church, color: Colors.white, size: 44),
                         ),
                       ),
                     ),
@@ -72,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 4),
                   const Text(
                     'نظام تسجيل ومتابعة حضور الخدام',
-                    style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                    style: TextStyle(fontSize: 13, color: AppTheme.textMuted),
                   ),
                   const SizedBox(height: 24),
                   Card(
@@ -84,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const Text(
                             'تسجيل دخول المسؤول',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 15,
                               fontWeight: FontWeight.bold,
                               color: AppTheme.primaryBlue,
                             ),
@@ -92,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 16),
                           const Text(
                             'الفرع / الأمانة:',
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textMain),
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textMain),
                           ),
                           const SizedBox(height: 6),
                           DropdownButtonFormField<String>(
@@ -102,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             items: [
                               const DropdownMenuItem(
                                 value: 'SUPER_ADMIN',
-                                child: Text('الأمانة العامة (إشراف عام)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                child: Text('الأمانة العامة للخدمة (أمين عام)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                               ),
                               ...provider.branches.map((b) => DropdownMenuItem(
                                     value: b.id,
@@ -116,30 +116,32 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 14),
                           const Text(
                             'اسم المستخدم:',
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textMain),
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textMain),
                           ),
                           const SizedBox(height: 6),
                           TextField(
                             controller: _usernameController,
                             textDirection: TextDirection.ltr,
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                             decoration: const InputDecoration(
-                              hintText: 'ادخل اسم المستخدم',
-                              hintStyle: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                              hintText: 'مثال: مجدي',
+                              hintStyle: TextStyle(fontSize: 13, color: AppTheme.textMuted),
                             ),
                           ),
                           const SizedBox(height: 14),
                           const Text(
                             'كلمة المرور:',
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textMain),
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textMain),
                           ),
                           const SizedBox(height: 6),
                           TextField(
                             controller: _passwordController,
                             obscureText: true,
                             textDirection: TextDirection.ltr,
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                             decoration: const InputDecoration(
                               hintText: '••••••••',
-                              hintStyle: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                              hintStyle: TextStyle(fontSize: 13, color: AppTheme.textMuted),
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -152,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const Text(
                                 'حفظ تسجيل الدخول على هذا الهاتف',
-                                style: TextStyle(fontSize: 12, color: AppTheme.textMain),
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.textMain),
                               ),
                             ],
                           ),
@@ -167,14 +169,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               child: Text(
                                 _errorMessage!,
-                                style: const TextStyle(color: AppTheme.statusRedText, fontSize: 12),
+                                style: const TextStyle(color: AppTheme.statusRedText, fontSize: 13, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ],
                           const SizedBox(height: 16),
                           SizedBox(
                             width: double.infinity,
-                            height: 44,
+                            height: 46,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppTheme.primaryBlue,
@@ -198,7 +200,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   setState(() => _errorMessage = 'بيانات الدخول غير صحيحة');
                                 }
                               },
-                              child: const Text('تسجيل الدخول', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                              child: const Text('تسجيل الدخول', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                             ),
                           ),
                         ],
@@ -208,21 +210,43 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 16),
                   Card(
                     child: Padding(
-                      padding: const EdgeInsets.all(12.0),
+                      padding: const EdgeInsets.all(14.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('حسابات تجريبية سريعة:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
+                          const Text('حساب أمين عام الخدمة المعتمد:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
                           const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              _quickChip('أمين عام', 'admin', '123', 'SUPER_ADMIN', provider),
-                              _quickChip('أمين ثانوي', 'thanawy', '123', 'b_thanawy', provider),
-                              _quickChip('أمين إعدادي', 'edady', '123', 'b_edady', provider),
-                              _quickChip('أمين ابتدائي', 'ebteday', '123', 'b_ebteday', provider),
-                            ],
+                          InkWell(
+                            onTap: () {
+                              _usernameController.text = 'مجدي';
+                              _passwordController.text = 'مجدي 1234';
+                              setState(() => _selectedBranchId = 'SUPER_ADMIN');
+                              provider.login('مجدي', 'مجدي 1234', 'SUPER_ADMIN', _rememberMe);
+                              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainScreen()));
+                            },
+                            borderRadius: BorderRadius.circular(10),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppTheme.bgLight,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: AppTheme.borderSubtle),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: const [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('أ/ مجدي خليل نوح (أمين عام)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
+                                      Text('اليوزر: مجدي | الباسورد: مجدي 1234', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+                                    ],
+                                  ),
+                                  Text('دخول سريع', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -233,28 +257,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _quickChip(String label, String user, String pass, String branchId, AttendanceProvider provider) {
-    return InkWell(
-      onTap: () {
-        _usernameController.text = user;
-        _passwordController.text = pass;
-        setState(() => _selectedBranchId = branchId);
-        provider.login(user, pass, branchId, _rememberMe);
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainScreen()));
-      },
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: AppTheme.bgLight,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppTheme.borderSubtle),
-        ),
-        child: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.primaryBlue)),
       ),
     );
   }
