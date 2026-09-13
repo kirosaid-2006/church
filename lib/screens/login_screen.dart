@@ -1,8 +1,8 @@
-﻿import '../models/branch.dart';
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/attendance_provider.dart';
 import '../theme/app_theme.dart';
+import '../models/branch.dart';
 import 'main_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -34,22 +34,30 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Church Logo
                   Container(
-                    width: 70,
-                    height: 70,
+                    width: 100,
+                    height: 100,
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryBlue,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.primaryBlue.withOpacity(0.2),
-                          blurRadius: 15,
-                          offset: const Offset(0, 5),
+                          color: AppTheme.primaryBlue.withOpacity(0.15),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.church_outlined, color: Colors.white, size: 36),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Image.asset(
+                        'assets/images/app_logo.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (ctx, err, stack) => Container(
+                          color: AppTheme.primaryBlue,
+                          child: const Icon(Icons.church, color: Colors.white, size: 40),
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   const Text(
@@ -67,8 +75,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
                   ),
                   const SizedBox(height: 24),
-
-                  // Login Form Card
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
@@ -84,8 +90,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-
-                          // Branch Dropdown
                           const Text(
                             'الفرع / الأمانة:',
                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textMain),
@@ -110,8 +114,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
                           const SizedBox(height: 14),
-
-                          // Username
                           const Text(
                             'اسم المستخدم:',
                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textMain),
@@ -126,8 +128,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           const SizedBox(height: 14),
-
-                          // Password
                           const Text(
                             'كلمة المرور:',
                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textMain),
@@ -143,8 +143,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           const SizedBox(height: 10),
-
-                          // Remember Me
                           Row(
                             children: [
                               Checkbox(
@@ -158,7 +156,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ],
                           ),
-
                           if (_errorMessage != null) ...[
                             const SizedBox(height: 8),
                             Container(
@@ -174,7 +171,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                           ],
-
                           const SizedBox(height: 16),
                           SizedBox(
                             width: double.infinity,
@@ -210,8 +206,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Quick test buttons
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
@@ -265,4 +259,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

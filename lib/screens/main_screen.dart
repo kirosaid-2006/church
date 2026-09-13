@@ -1,8 +1,8 @@
-﻿import '../models/branch.dart';
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/attendance_provider.dart';
 import '../theme/app_theme.dart';
+import '../models/branch.dart';
 import 'attendance_screen.dart';
 import 'alerts_screen.dart';
 import 'management_screen.dart';
@@ -42,31 +42,46 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        title: Row(
           children: [
-            Row(
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/images/app_logo.png',
+                width: 32,
+                height: 32,
+                fit: BoxFit.cover,
+                errorBuilder: (ctx, err, stack) => const Icon(Icons.church, size: 24, color: AppTheme.primaryBlue),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(user.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: user.isSuperAdmin ? AppTheme.primaryBlue.withOpacity(0.1) : Colors.grey.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    user.isSuperAdmin ? 'أمين عام' : 'أمين فرع',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: user.isSuperAdmin ? AppTheme.primaryBlue : AppTheme.textMain,
+                Row(
+                  children: [
+                    Text(user.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: user.isSuperAdmin ? AppTheme.primaryBlue.withOpacity(0.1) : Colors.grey.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        user.isSuperAdmin ? 'أمين عام' : 'أمين فرع',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: user.isSuperAdmin ? AppTheme.primaryBlue : AppTheme.textMain,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
+                Text(branchName, style: const TextStyle(fontSize: 11, color: AppTheme.textMuted)),
               ],
             ),
-            Text(branchName, style: const TextStyle(fontSize: 11, color: AppTheme.textMuted)),
           ],
         ),
         actions: [
@@ -138,7 +153,7 @@ class _MainScreenState extends State<MainScreen> {
 
   void _showGenerateFridaysDialog(BuildContext context, AttendanceProvider provider) {
     int year = 2026;
-    int month = 9; // September
+    int month = 9;
     String scope = 'month';
 
     showDialog(
@@ -225,4 +240,3 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
-
