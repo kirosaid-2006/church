@@ -12,6 +12,9 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1E3A8A">
   <title>كنيسة السيدة العذراء والشهيدة كاترين - حضور الخدام</title>
+    <!-- Firebase SDK Compat -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800;900&display=swap');
@@ -103,9 +106,9 @@
     <div id="phoneHeader" class="pt-3 px-6 pb-2 bg-white flex justify-between items-center text-xs text-slate-500 border-b border-slate-200">
       <span id="liveClock" class="font-bold text-slate-700">10:30</span>
       <div class="w-20 h-4 bg-slate-200 rounded-full mx-auto"></div>
-      <div class="flex items-center gap-1.5 text-emerald-600 font-bold text-xs">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
-        <span>متصل</span>
+      <div id="cloudStatusBadge" class="flex items-center gap-1.5 text-emerald-700 font-bold text-xs bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+        <span id="cloudStatusText">سحابة متصلة</span>
       </div>
     </div>
 
@@ -201,6 +204,10 @@
         </div>
 
         <div class="flex items-center gap-2">
+          <div id="dashCloudBadge" class="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold" title="المزامنة السحابية اللحظية تعمل">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+            <span id="dashCloudText">مزامنة سحابية</span>
+          </div>
           <!-- Logout Button -->
           <button onclick="handleLogout()" class="h-9 px-3 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-700 font-bold text-xs transition border border-slate-200 flex items-center gap-1" title="تسجيل الخروج">
             خروج
@@ -547,6 +554,163 @@
   </main>
 
   <script>
+    
+    // ==============================================
+    // FIREBASE CLOUD SYNC & OFFLINE PERSISTENCE
+    // ==============================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKEYUlptOPusfcHcQhz27SJXm_0wrzDjs",
+      authDomain: "church-attendance-d0789.firebaseapp.com",
+      projectId: "church-attendance-d0789",
+      storageBucket: "church-attendance-d0789.firebasestorage.app",
+      messagingSenderId: "83171073533",
+      appId: "1:83171073533:web:bc70835d7237f716b1cd94",
+      measurementId: "G-J3E395BJEX"
+    };
+
+    let db = null;
+    let isCloudReady = false;
+
+    function initFirebase() {
+      try {
+        if (typeof firebase !== 'undefined') {
+          if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+          }
+          db = firebase.firestore();
+          
+          // Enable offline persistence
+          db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+            console.warn('Persistence notice:', err.code);
+          });
+          
+          isCloudReady = true;
+          updateSyncIndicator(true);
+          setupFirestoreSync();
+        } else {
+          updateSyncIndicator(false);
+        }
+      } catch (err) {
+        console.error('Firebase init error:', err);
+        updateSyncIndicator(false);
+      }
+    }
+
+    function updateSyncIndicator(online) {
+      const isOnline = online && navigator.onLine;
+      const cloudBadge = document.getElementById('cloudStatusBadge');
+      const cloudText = document.getElementById('cloudStatusText');
+      const dashBadge = document.getElementById('dashCloudBadge');
+      const dashText = document.getElementById('dashCloudText');
+
+      if (isOnline) {
+        if (cloudBadge) {
+          cloudBadge.className = 'flex items-center gap-1.5 text-emerald-700 font-bold text-xs bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200';
+          const dot = cloudBadge.querySelector('span:first-child');
+          if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse';
+          if (cloudText) cloudText.textContent = 'سحابة متصلة';
+        }
+        if (dashBadge) {
+          dashBadge.className = 'flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold';
+          const dot = dashBadge.querySelector('span:first-child');
+          if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse';
+          if (dashText) dashText.textContent = 'مزامنة سحابية';
+        }
+      } else {
+        if (cloudBadge) {
+          cloudBadge.className = 'flex items-center gap-1.5 text-amber-700 font-bold text-xs bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200';
+          const dot = cloudBadge.querySelector('span:first-child');
+          if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-500 inline-block';
+          if (cloudText) cloudText.textContent = 'أوفلاين (حفظ محلي)';
+        }
+        if (dashBadge) {
+          dashBadge.className = 'flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 font-bold';
+          const dot = dashBadge.querySelector('span:first-child');
+          if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-500 inline-block';
+          if (dashText) dashText.textContent = 'حفظ محلي';
+        }
+      }
+    }
+
+    window.addEventListener('online', () => updateSyncIndicator(true));
+    window.addEventListener('offline', () => updateSyncIndicator(false));
+
+    function setupFirestoreSync() {
+      if (!db) return;
+
+      // 1. Branches Sync
+      db.collection('branches').onSnapshot((snapshot) => {
+        if (!snapshot.empty) {
+          appState.branches = snapshot.docs.map(doc => doc.data());
+          saveState();
+          renderCustomBranchDropdownOptions();
+          refreshBranchSelectors();
+          refreshAllViews();
+        }
+      }, (err) => console.warn('Branches sync error:', err));
+
+      // 2. Users Sync
+      db.collection('users').onSnapshot((snapshot) => {
+        if (snapshot.empty) {
+          // Seed initial super admin to cloud
+          db.collection('users').doc('user_magdy').set({
+            username: 'مجدي',
+            password: 'مجدي 1234',
+            name: 'أ/ مجدي خليل نوح',
+            role: 'super_admin',
+            branchId: 'SUPER_ADMIN'
+          }).catch(console.error);
+        } else {
+          appState.users = snapshot.docs.map(doc => doc.data());
+          saveState();
+        }
+      }, (err) => console.warn('Users sync error:', err));
+
+      // 3. Servants Sync
+      db.collection('servants').onSnapshot((snapshot) => {
+        appState.servants = snapshot.docs.map(doc => doc.data());
+        saveState();
+        refreshAllViews();
+      }, (err) => console.warn('Servants sync error:', err));
+
+      // 4. Attendance Records Sync
+      db.collection('attendance').onSnapshot((snapshot) => {
+        snapshot.docs.forEach(doc => {
+          const data = doc.data();
+          const key = data.key || `${data.friday}_${data.servantId}`;
+          appState.records[key] = {
+            quddas: data.quddas || 0,
+            khedma: data.khedma || 0,
+            egtmaa: data.egtmaa || 0
+          };
+        });
+        saveState();
+        renderAttendanceList();
+        renderAlerts();
+        renderReports();
+        updateStats();
+      }, (err) => console.warn('Attendance sync error:', err));
+
+      // 5. Fridays Sync
+      db.collection('config').doc('fridays').onSnapshot((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          if (data && data.list && data.list.length > 0) {
+            appState.fridays = data.list;
+            if (!appState.selectedFriday && appState.fridays.length > 0) {
+              appState.selectedFriday = appState.fridays[0].date;
+            }
+            populateFridayDropdown();
+            refreshAllViews();
+          }
+        } else {
+          if (appState.fridays && appState.fridays.length > 0) {
+            db.collection('config').doc('fridays').set({ list: appState.fridays }).catch(console.error);
+          }
+        }
+      }, (err) => console.warn('Fridays sync error:', err));
+    }
+
     // --- AUTHENTICATION & SEED STATE (CLEAN SLATE: ONLY SUPER ADMIN) ---
     const DEFAULT_USERS = [
       {
@@ -851,6 +1015,12 @@
       closeModal('modalGenFridays');
       populateFridayDropdown();
       refreshAllViews();
+
+      if (db) {
+        db.collection('config').doc('fridays').set({
+          list: appState.fridays
+        }, { merge: true }).catch(console.error);
+      }
     }
 
     function toggleMonthPicker(scope) {
@@ -928,6 +1098,19 @@
       saveState();
       renderAttendanceList();
       updateStats();
+
+      if (db) {
+        const sObj = appState.servants.find(s => s.id === servantId);
+        db.collection('attendance').doc(key).set({
+          key: key,
+          friday: appState.selectedFriday,
+          servantId: servantId,
+          branchId: sObj ? sObj.branchId : '',
+          quddas: appState.records[key].quddas || 0,
+          khedma: appState.records[key].khedma || 0,
+          egtmaa: appState.records[key].egtmaa || 0
+        }, { merge: true }).catch(console.error);
+      }
     }
 
     function bulkMarkAllPresent() {
@@ -944,6 +1127,24 @@
       renderAttendanceList();
       updateStats();
       showToast('تم تسجيل حضور القداس للجميع');
+
+      if (db && servants.length > 0) {
+        const batch = db.batch();
+        servants.forEach(s => {
+          const key = `${appState.selectedFriday}_${s.id}`;
+          const ref = db.collection('attendance').doc(key);
+          batch.set(ref, {
+            key: key,
+            friday: appState.selectedFriday,
+            servantId: s.id,
+            branchId: s.branchId,
+            quddas: 1,
+            khedma: appState.records[key]?.khedma || 0,
+            egtmaa: appState.records[key]?.egtmaa || 0
+          }, { merge: true });
+        });
+        batch.commit().catch(console.error);
+      }
     }
 
     // --- ATTENDANCE FILTERING ---
@@ -1353,6 +1554,10 @@
         refreshBranchSelectors();
         refreshAllViews();
         showToast(`تم حذف فرع (${branch.name}) بنجاح`);
+
+        if (db) {
+          db.collection('branches').doc(branchId).delete().catch(console.error);
+        }
       }
     }
 
@@ -1514,6 +1719,16 @@
       document.getElementById('newServantPhone').value = '';
       refreshAllViews();
       showToast(`تم تسجيل الخادم (${name}) بنجاح`);
+
+      if (db) {
+        db.collection('servants').doc(newId).set({
+          id: newId,
+          name,
+          phone: phone || '01000000000',
+          branchId: branchId,
+          active: true
+        }).catch(console.error);
+      }
     }
 
     function removeServant(id) {
@@ -1564,6 +1779,24 @@
       refreshBranchSelectors();
       refreshAllViews();
       showToast(`تم إنشاء فرع (${name}) وحساب الأمين بنجاح!`);
+
+      if (db) {
+        db.collection('branches').doc(newBranchId).set({
+          id: newBranchId,
+          name: name,
+          adminName: adminName || 'أمين الفرع'
+        }).catch(console.error);
+
+        if (username) {
+          db.collection('users').doc('u_' + username).set({
+            username,
+            password: password || '1234',
+            name: adminName || 'أمين الفرع',
+            role: 'branch_admin',
+            branchId: newBranchId
+          }).catch(console.error);
+        }
+      }
     }
 
     function refreshBranchSelectors() {
@@ -1620,6 +1853,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       loadState();
+      initFirebase();
       renderCustomBranchDropdownOptions();
       refreshBranchSelectors();
 
