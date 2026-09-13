@@ -123,10 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             controller: _usernameController,
                             textDirection: TextDirection.ltr,
                             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                            decoration: const InputDecoration(
-                              hintText: 'مثال: مجدي',
-                              hintStyle: TextStyle(fontSize: 13, color: AppTheme.textMuted),
-                            ),
+                            decoration: const InputDecoration(),
                           ),
                           const SizedBox(height: 14),
                           const Text(
@@ -139,10 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             obscureText: true,
                             textDirection: TextDirection.ltr,
                             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                            decoration: const InputDecoration(
-                              hintText: '••••••••',
-                              hintStyle: TextStyle(fontSize: 13, color: AppTheme.textMuted),
-                            ),
+                            decoration: const InputDecoration(),
                           ),
                           const SizedBox(height: 10),
                           Row(
