@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/attendance_provider.dart';
 import '../theme/app_theme.dart';
@@ -201,51 +201,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 }
                               },
                               child: const Text('تسجيل الدخول', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(14.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('حساب أمين عام الخدمة المعتمد:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textMuted)),
-                          const SizedBox(height: 8),
-                          InkWell(
-                            onTap: () {
-                              _usernameController.text = 'مجدي';
-                              _passwordController.text = 'مجدي 1234';
-                              setState(() => _selectedBranchId = 'SUPER_ADMIN');
-                              provider.login('مجدي', 'مجدي 1234', 'SUPER_ADMIN', _rememberMe);
-                              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainScreen()));
-                            },
-                            borderRadius: BorderRadius.circular(10),
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: AppTheme.bgLight,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: AppTheme.borderSubtle),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: const [
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text('أ/ مجدي خليل نوح (أمين عام)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
-                                      Text('اليوزر: مجدي | الباسورد: مجدي 1234', style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
-                                    ],
-                                  ),
-                                  Text('دخول سريع', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
-                                ],
-                              ),
                             ),
                           ),
                         ],
