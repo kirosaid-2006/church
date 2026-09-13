@@ -1,4 +1,4 @@
-const CACHE_NAME = 'church-attendance-v6';
+const CACHE_NAME = 'church-attendance-v7';
 const ASSETS = [
   './',
   './index.html',

@@ -218,6 +218,15 @@
         </div>
       </div>
 
+      <!-- Cloud Warning Banner (Shown only if Firebase has an issue) -->
+      <div id="firestoreAlertBanner" class="hidden bg-amber-50 border-b border-amber-200 px-4 py-2.5 text-xs text-amber-800 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span class="text-base">⚠️</span>
+          <span id="firestoreAlertMsg">تنبيه السحابة</span>
+        </div>
+        <button onclick="document.getElementById('firestoreAlertBanner').classList.add('hidden')" class="text-amber-700 hover:text-amber-950 font-bold px-2 py-0.5 text-xs bg-amber-100 rounded">إغلاق</button>
+      </div>
+
       <!-- Sub-Header: Date / Friday Selector -->
       <div class="bg-white px-4 py-2.5 border-b border-slate-200 flex items-center justify-between gap-2">
         <div class="flex items-center gap-2 overflow-x-auto py-0.5 flex-1">
@@ -638,19 +647,38 @@
     window.addEventListener('online', () => updateSyncIndicator(true));
     window.addEventListener('offline', () => updateSyncIndicator(false));
 
+    function handleFirestoreError(err) {
+      console.warn('Firestore error:', err);
+      updateSyncIndicator(false);
+      const banner = document.getElementById('firestoreAlertBanner');
+      const msg = document.getElementById('firestoreAlertMsg');
+      if (banner && msg) {
+        banner.classList.remove('hidden');
+        if (err && (err.code === 'permission-denied' || String(err.message).includes('disabled') || String(err.message).includes('not been used'))) {
+          msg.innerHTML = 'قاعدة بيانات Firestore لم تُنشأ بعد في مشروعك. يرجى <a href="https://console.firebase.google.com/project/church-attendance-d0789/firestore" target="_blank" class="underline font-bold text-amber-900">الضغط هنا لإنشاء قاعدة البيانات (Create database) في وضع Test mode</a>.';
+        } else {
+          msg.textContent = 'تنبيه المزامنة السحابية: ' + (err.message || err.code || 'جارٍ إعادة المحاولة...');
+        }
+      }
+    }
+
+    function handleFirestoreSuccess() {
+      const banner = document.getElementById('firestoreAlertBanner');
+      if (banner) banner.classList.add('hidden');
+      updateSyncIndicator(true);
+    }
+
     function setupFirestoreSync() {
       if (!db) return;
-
-      // 1. Branches Sync
       db.collection('branches').onSnapshot((snapshot) => {
         if (!snapshot.empty) {
-          appState.branches = snapshot.docs.map(doc => doc.data());
+          handleFirestoreSuccess(); appState.branches = snapshot.docs.map(doc => doc.data());
           saveState();
           renderCustomBranchDropdownOptions();
           refreshBranchSelectors();
           refreshAllViews();
         }
-      }, (err) => console.warn('Branches sync error:', err));
+      }, handleFirestoreError);
 
       // 2. Users Sync
       db.collection('users').onSnapshot((snapshot) => {
@@ -667,14 +695,14 @@
           appState.users = snapshot.docs.map(doc => doc.data());
           saveState();
         }
-      }, (err) => console.warn('Users sync error:', err));
+      }, handleFirestoreError);
 
       // 3. Servants Sync
       db.collection('servants').onSnapshot((snapshot) => {
         appState.servants = snapshot.docs.map(doc => doc.data());
         saveState();
         refreshAllViews();
-      }, (err) => console.warn('Servants sync error:', err));
+      }, handleFirestoreError);
 
       // 4. Attendance Records Sync
       db.collection('attendance').onSnapshot((snapshot) => {
@@ -692,7 +720,7 @@
         renderAlerts();
         renderReports();
         updateStats();
-      }, (err) => console.warn('Attendance sync error:', err));
+      }, handleFirestoreError);
 
       // 5. Fridays Sync
       db.collection('config').doc('fridays').onSnapshot((doc) => {
@@ -711,7 +739,7 @@
             db.collection('config').doc('fridays').set({ list: appState.fridays }).catch(console.error);
           }
         }
-      }, (err) => console.warn('Fridays sync error:', err));
+      }, handleFirestoreError);
     }
 
     // --- AUTHENTICATION & SEED STATE (CLEAN SLATE: ONLY SUPER ADMIN) ---
